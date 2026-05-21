@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text To File Converter</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    html, body {
+      width: 100%;
+      overflow-x: hidden; /* Strict overflow containment */
+    }
+
+    body{
+      min-height:100vh;
+      background:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+      radial-gradient(circle at top left,#25104a,#0a0a16 60%);
+      background-size:60px 60px,60px 60px,100% 100%;
+      color:white;
+      font-family:'Space Grotesk',sans-serif;
+      position:relative;
+    }
+
+    /* Fixed ambient glow containers to prevent horizontal page expanding */
+    .bg-glows {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .glow-1 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: #00e1ff;
+      filter: blur(180px);
+      opacity: 0.12;
+      top: -150px;
+      right: -100px;
+    }
+
+    .glow-2 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: #7c3aed;
+      filter: blur(180px);
+      opacity: 0.15;
+      bottom: -200px;
+      left: -150px;
+    }
+
+    .container{
+      width:92%;
+      max-width:900px;
+      margin:50px auto;
+      position:relative;
+      z-index:10;
+    }
+
+    .tag{
+      width:max-content;
+      margin:auto;
+      padding:12px 25px;
+      border:1px solid rgba(0,225,255,0.3);
+      border-radius:50px;
+      background:rgba(0,0,0,0.3);
+      color:#00e1ff;
+      font-family:'Orbitron',sans-serif;
+      letter-spacing:4px;
+      font-size:14px;
+      box-shadow:0 0 25px rgba(0,225,255,0.1);
+    }
+
+    .hero{
+      text-align:center;
+      margin-top:40px;
+    }
+
+    .hero h1{
+      font-size:80px;
+      line-height:0.95;
+      font-weight:700;
+      letter-spacing:-3px;
+    }
+
+    .hero h1 span{
+      background:linear-gradient(to right,#00d9ff,#7c4dff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .hero p{
+      margin-top:25px;
+      color:#a5a5c7;
+      font-size:22px;
+      line-height:1.6;
+    }
+
+    .main-box{
+      margin-top:70px;
+      background:rgba(5,8,20,0.88);
+      border-radius:35px;
+      padding:35px;
+      border:1px solid rgba(255,255,255,0.06);
+      box-shadow:
+      0 0 30px rgba(0,0,0,0.4),
+      0 0 80px rgba(0,225,255,0.05);
+      backdrop-filter:blur(20px);
+    }
+
+    .label{
+      color:#7b7ba5;
+      letter-spacing:6px;
+      font-size:14px;
+      margin-bottom:18px;
+      font-family:'Orbitron',sans-serif;
+    }
+
+    textarea{
+      width:100%;
+      height:320px;
+      border:none;
+      outline:none;
+      resize:none;
+      padding:30px;
+      border-radius:25px;
+      background:#11131f;
+      color:#d8d8ff;
+      font-size:22px;
+      line-height:1.7;
+      border:1px solid rgba(255,255,255,0.06);
+      transition:0.4s;
+      font-family:'Space Grotesk',sans-serif;
+    }
+
+    textarea:focus{
+      border:1px solid #00d9ff;
+      box-shadow:0 0 25px rgba(0,217,255,0.25);
+      transform:scale(1.01);
+    }
+
+    .character{
+      text-align:right;
+      margin-top:15px;
+      color:#8d8db7;
+      font-size:18px;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    .formats{
+      margin-top:35px;
+      animation:appear 0.6s ease;
+    }
+
+    .formats h2{
+      margin-bottom:20px;
+      font-size:28px;
+    }
+
+    .buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:15px;
+    }
+
+    .buttons button{
+      padding:14px 28px;
+      border:none;
+      border-radius:16px;
+      cursor:pointer;
+      color:white;
+      font-size:17px;
+      font-weight:600;
+      transition:0.35s;
+      background:linear-gradient(135deg,#00d9ff,#6f4cff);
+      box-shadow:0 0 20px rgba(0,217,255,0.2);
+    }
+
+    .buttons button:hover, .buttons button.active {
+      transform:translateY(-4px) scale(1.03);
+      box-shadow:0 10px 35px rgba(0,217,255,0.35);
+      background:linear-gradient(135deg,#00e1ff,#7c3aed);
+    }
+
+    .file-box{
+      margin-top:35px;
+      background:#10131f;
+      border-radius:25px;
+      padding:30px;
+      border:1px solid rgba(255,255,255,0.06);
+      animation:pop 0.5s ease;
+    }
+
+    .file-box h2{
+      font-size:32px;
+      margin-bottom:10px;
+      background:linear-gradient(to right,#00d9ff,#7c4dff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .file-name{
+      color:#bdbde6;
+      margin-top:8px;
+      font-size:18px;
+      font-family: monospace;
+    }
+
+    .action-buttons{
+      display:flex;
+      gap:20px;
+      flex-wrap:wrap;
+      margin-top:28px;
+    }
+
+    .action-buttons a{
+      text-decoration:none;
+      padding:15px 30px;
+      border-radius:16px;
+      color:white;
+      font-weight:700;
+      transition:0.35s;
+      font-size:16px;
+      text-align: center;
+    }
+
+    .view-btn{
+      background:linear-gradient(135deg,#ff00cc,#7c4dff);
+      box-shadow:0 0 25px rgba(255,0,204,0.25);
+    }
+
+    .download-btn{
+      background:linear-gradient(135deg,#00e676,#00c853);
+      box-shadow:0 0 25px rgba(0,230,118,0.25);
+    }
+
+    .action-buttons a:hover{
+      transform:translateY(-5px) scale(1.05);
+    }
+
+    iframe{
+      width:100%;
+      height:350px;
+      margin-top:25px;
+      border:none;
+      border-radius:20px;
+      background:white;
+    }
+
+    @keyframes appear{
+      from{
+        opacity:0;
+        transform:translateY(40px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    @keyframes pop{
+      from{
+        opacity:0;
+        transform:scale(0.9);
+      }
+      to{
+        opacity:1;
+        transform:scale(1);
+      }
+    }
+
+    @media(max-width:700px){
+      .hero h1{
+        font-size:42px;
+      }
+      textarea{
+        height:240px;
+        font-size:18px;
+        padding: 20px;
+      }
+      .hero p{
+        font-size:16px;
+      }
+      .main-box {
+        padding: 20px;
+        border-radius: 25px;
+      }
+      .action-buttons a {
+        width: 100%;
+      }
+
+.footer-credit {
+  text-align: center;
+  padding: 40px 0 20px 0;
+  color: #65658a;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 10;
+}
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-glows">
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+  </div>
+
+  <div class="container">
+    <div class="tag">● TEXT TO FILE CONVERTER</div>
+
+    <div class="hero">
+      <h1>Drop <br> your text. <br> <span>Pick your format.</span></h1>
+      <p>Write anything. Export it as any file format instantly — <br> no installs, no sign-ups.</p>
+    </div>
+
+    <div class="main-box">
+      <div class="label">// YOUR TEXT</div>
+
+      <textarea id="textInput" placeholder="Start typing or paste your text here...
+
+This could be code,
+notes, markdown, HTML —
+anything you want to save as a file."></textarea>
+
+      <div class="character">
+        <span id="charCount">0</span> characters
+      </div>
+
+      <div class="formats hidden" id="formats">
+        <h2>Select File Format</h2>
+        <div class="buttons">
+          <button onclick="selectFormat('txt')">TXT</button>
+          <button onclick="selectFormat('html')">HTML</button>
+          <button onclick="selectFormat('py')">PY</button>
+          <button onclick="selectFormat('js')">JS</button>
+          <button onclick="selectFormat('css')">CSS</button>
+          <button onclick="selectFormat('json')">JSON</button>
+        </div>
+      </div>
+
+      <div class="file-box hidden" id="fileBox">
+        <h2>File Ready 🚀</h2>
+        <div class="file-name" id="fileName">myfile.txt</div>
+
+        <div class="action-buttons">
+          <a href="#" target="_blank" id="viewBtn" class="view-btn">View File</a>
+          <a href="#" id="downloadBtn" class="download-btn" download>Download File</a>
+        </div>
+
+        <iframe id="previewFrame"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const textInput = document.getElementById("textInput");
+    const charCount = document.getElementById("charCount");
+    const formats = document.getElementById("formats");
+    const fileBox = document.getElementById("fileBox");
+    const fileName = document.getElementById("fileName");
+    const viewBtn = document.getElementById("viewBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const previewFrame = document.getElementById("previewFrame");
+
+    let currentFormat = null;
+    let currentBlobUrl = null;
+
+    const mimeTypes = {
+      txt: "text/plain;charset=utf-8",
+      html: "text/html;charset=utf-8",
+      py: "text/x-python;charset=utf-8",
+      js: "application/javascript;charset=utf-8",
+      css: "text/css;charset=utf-8",
+      json: "application/json;charset=utf-8"
+    };
+
+    textInput.addEventListener("input", () => {
+      const textLength = textInput.value.length;
+      charCount.innerText = textLength;
+
+      if (textInput.value.trim() !== "") {
+        formats.classList.remove("hidden");
+        if (currentFormat) {
+          updateFile();
+        }
+      } else {
+        formats.classList.add("hidden");
+        fileBox.classList.add("hidden");
+        currentFormat = null;
+        clearBlob();
+        removeActiveFormatButton();
+      }
+    });
+
+    function selectFormat(format) {
+      currentFormat = format;
+      removeActiveFormatButton();
+      
+      const buttons = document.querySelectorAll(".buttons button");
+      for (let btn of buttons) {
+        if (btn.innerText.toLowerCase() === format) {
+          btn.classList.add("active");
+          break;
+        }
+      }
+      updateFile();
+    }
+
+    function updateFile() {
+      if (!currentFormat) return;
+
+      const text = textInput.value;
+      clearBlob();
+
+      const type = mimeTypes[currentFormat] || "text/plain;charset=utf-8";
+      const blob = new Blob([text], { type: type });
+      
+      currentBlobUrl = URL.createObjectURL(blob);
+      const file = "myfile." + currentFormat;
+
+      fileName.innerText = file;
+      downloadBtn.href = currentBlobUrl;
+      downloadBtn.download = file;
+      viewBtn.href = currentBlobUrl;
+      previewFrame.src = currentBlobUrl;
+
+      fileBox.classList.remove("hidden");
+    }
+
+    function clearBlob() {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+    }
+
+    function removeActiveFormatButton() {
+      document.querySelectorAll(".buttons button").forEach(btn => btn.classList.remove("active"));
+    }
+
+  </script>
+<div class="footer-credit">
+  &copy; 2026 All Rights Reserved by Sagar
+</div>
+
+</body>
+</html>
